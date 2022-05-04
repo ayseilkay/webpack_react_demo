@@ -1,0 +1,244 @@
+Webpack Hakkında Bilgi:
+Sorun Neydi?
+- Javascriptin aşırı popürlerleşmesi ve bir web projesinden beklentilerin artması ile birlikte onlarca
+kütüphane ve geliştirme yapmak için birden fazla javascript ve css dosyasına ihtiyaç duyulmaya başlandı.Bu ihtiyaçlar
+birden fazla problemi beraberinde getirdi.
+Çözüm Neydi?
+-Web sayfasında onlarca dosya çağırmak, tarayıcıların aynı anda paralel olarak indirebileceği dosya sayısının belirli bir limitinin olmasından dolayı performans sorunlarına sebep olmaya başlandı.
+Bu sorunu çözmek için; Kullandığımız dosyaları küçültmemiz ve yapabiliyorsak tek bir dosya haline getirmemiz gerekiyordu.
+
+Bu işlemleri ve daha fazlasını yapabilen gulp,grunt gibi javascript task runnerlar geliştirildi.
+Javascript task runnerlar sıkıştırma, bundle oluşturma,optimizasyon,css preprocessorların compile edilmesi gibi birçok işlemi bizim yerimize yapan araçlardır. Bu araçlar günümüz frontend yapısına ayak uydurmaya yetmedi.
+
+Çünkü; Bu araçlar build işlemlerini dosyalar arasındaki ilişkiyi gözetmeksizin yapıyordu.
+Kullandığımız kütüphaneler ile yaptığımız geliştirmeler arasındaki ilişkilerin gözetilerek bir build işlemi
+yapabileceğimiz webpack ortaya çıktı.
+
+Webpack Nedir?
+Webpack nodejs tabanlı bir modül paketleyicisidir.(Module bundler)
+Birden fazla dosya tipini işleyebilir.Bu dosyalar üzerinde farklı işlemler (transpile,concat,minify vs ) yapabili ve belirtilen biçimde static bundlelar (paketler) oluşturabilir.
+Ayrıca modüllerin tüm bağımlılıklarını takip eder.
+Webpack Konseptleri Nelerdir?
+Entry: Webpack'in dependency graph'ını ( bağımlılık grafiğini) oluşturabilmesi için bir başlangıç noktasına ihtiyaç vardır.Webpack bu başlangıç noktasından başlar ve tüm modülleri gezerek bağımlılıkları yönetmeye çalışır.
+Default olarak ./src/index.js default başlangıç noktasıdır.Entry olarak birden fazla başlangıç noktası girmek mümkündür.
+Output: Webpack'in tüm işlemlerden sonra oluşturduğu bundle dosyasını hangi klasöre yazacağını belirttiğimiz kısımdır.Bu klasör genelde dist yada build klasörü olur. 
+Loaders: Webpack sadece javascript ve json dosyalarını işleyebilir.Webpack'in diğer dosya tiplerinide işleyebilme yeteneği kazandırabilmek için loaderslar kullanılır.
+Plugins:Pluginler webpack ekosisteminde önemli bir yere sahiptirler. Loaderların yetmediği bazı işlemler ve görevleri pluginler ile yaparız.Pluginler assets management, bundle minimization ve optmization gibi birçok görevi yerine getirebilirler.
+Mode: Genellikle bir uygulama geliştirirken development ve production olmak üzere 2 tip kaynak koda sahip oluruz.
+Production mode kodun optimize edilmiş halini, development modu geliştirme yaparken kullandığımız optimize edilmiş halini işaret eder.
+ysoftaoglu.com adresinden kendime not çıkartmak amacıyla alınmıştır.
+-----------------------------------------------------------------------
+Webpack Kurulum
+
+1. npm init -y komutu çalıştırılarak package.json dosyası oluşturuldu.
+2. Webpack ile ilgili bağımlılıklar dev dependency olarak kuruldu.
+* npm install --save-dev webpack webpack-cli webpack-dev-server
+3. Ana dizinde  webpack.config.js adında bir dosya oluşturalım.Aşağıdaki kodu kopyalaya ve webpack.config.js içine yapıştır.
+const path = require('path');
+module.exports = {
+mode: 'development',
+entry: path.resolve(__dirname, "./src/index.jsx"),
+output: {
+path: path.resolve(__dirname, 'dist'),
+filename: 'main.bundle.js'
+},
+}
+4. src adında bir klasör olusturalım.İçerisine index.html ve index.jsx  dosyası olusturalım.
+* webpack.config.js dosyamızın ilk olarak içeriği yukarıdaki gibi geliştirici modunda (development) entry noktamız (bulundugumuz yol,src/index.jsx) build alındığında ise output olarak dist klasörü oluşturup bundlemızın adını main.bundle.js olarak belirteceğimizi söyledik.
+5. Terminalde npm install --save-dev html-webpack-plugin komutunu çalıştırıyoruz.
+6. Aşağıdaki kodu kopyalayıp webpack.config.js dosyasının içerisine tekrar yapıştırıyoruz.
+
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin'); 
+module.exports = {
+mode: 'development',
+entry: path.resolve(__dirname, "./src/index.jsx"),
+output: {
+path: path.resolve(__dirname, 'dist'),
+filename: 'main.bundle.js'
+},
+plugins: [
+    new HtmlWebpackPlugin({ title: "Webpack & React App", template:    path.resolve(__dirname, './src/index.html') })
+]}
+
+7. index.html dosyamın içerisine aşağıdaki kod bloğunu yapıştrıyorum.Html webpack pluginleri araştırarak daha fazla özelliği öğrenebilirsiniz.
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <div id="root">
+    </div>
+</body>
+
+</html>
+
+8. Daha sonra babel eklentisini kuracağız.Babel kısaca esmascript 6 ile yazılmış olan kodları esmascript5 ' e çeviren bir araçtır. Aynı webpack gibi.Webpack de projemizi derlediğimiz(bundle ettiğimiz) bir araçtır. Aşağıdaki komutları terminalde çalıştırıyoruz.
+
+npm install --save-dev babel-loader @babel/core
+npm install @babel/preset-env --save-dev
+npm install --save-dev @babel/preset-react
+
+9. Proje dizininde babel.config.json dosyamızı oluşturalım ve içerisine aşağıdakileri ekleyelim.
+{
+    "presets": ["@babel/preset-env", "@babel/preset-react"]
+}
+
+10. Daha sonra sayfamızda kullanacağımız css,sass için css loaderlarını yüklüyoruz. Aşağıdaki komutları terminalde çalıştırıyoruz.
+npm install --save-dev css-loader
+npm install --save-dev sass-loader (sass scss için kullanmıyorsanız eklemeniz )
+npm install --save-dev style-loader
+
+11. İlgili paketler kurulduktan sonra webpack.config.js dosyamızı açalım ve tanımlamalarımızı yapalım. Aşağıdaki kodu tekrar webpack.config.js içerisine yapıştırınız.
+
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+module.exports = {
+mode: 'development',
+entry: path.resolve(__dirname, "./src/index.jsx"),
+output: {
+path: path.resolve(__dirname, 'dist'),
+filename: 'main.bundle.js'
+},
+module: {
+    rules: [
+        {
+            test: /\.(js|jsx)$/,
+            exclude: /node_modules/,
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: ['@babel/preset-env']
+                }
+            }
+        },
+        {
+            test: /\.s[ac]ss$/i,
+            use: [
+                'style-loader',
+                {
+                    loader: "css-loader",
+                    options: {
+                        modules: true,
+                        importLoaders: 1
+                    }
+                },
+                'sass-loader',
+            ],
+        },
+    ]
+},
+plugins: [
+    new HtmlWebpackPlugin({ title: "Webpack & React App", template:    path.resolve(__dirname, './src/index.html') })
+]}
+
+Yukarıdaki kod blogunda; Projemizde bulunan js veya jsx uzantılı dosyalarımızı babel ile ele alacağımızı bunları ele alırken node_modules klasörünün dahil olmayacağını belirttik,aynı şekilde css dosyalarımızı da style loader,css loader,scss yada sass kullanıyorsak sas-loader ile ele alacağımızı css’i modüler olarak kullanmak istediğimizi de ek parametre olarak belirttik.
+
+12. Daha sonra aşağıdaki komutu terminalde çalıştırıyoruz.  Projemizi build aldığımız zaman dist klasörünün içerisinde product dosyalarımızın harici herhangi bir dosya olmaması için gerekli olan bir eklentidir.
+npm install --save-dev clean-webpack-plugin
+
+13. Tekradan gerekli olan kodları webpack.config.js içerisine ekleyebiliriz.
+
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+module.exports = {
+  mode: "development",
+  entry: path.resolve(__dirname, "./src/index.jsx"),
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "main.bundle.js",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+      {
+        test: /\.s[ac]ss$/i,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+              importLoaders: 1,
+            },
+          },
+          "sass-loader",
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".js", ".jsx", ".json"],
+    alias: {
+      Utilities: path.resolve(__dirname, "src/utils/"),
+    },
+  },
+  devtool: "eval-cheap-module-source-map",
+  plugins: [
+    new CleanWebpackPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.ProgressPlugin(),
+    new HtmlWebpackPlugin({
+      title: "MerhabaApp",
+      template: path.resolve(__dirname, "./src/index.html"),
+    }),
+  ],
+  devServer: {
+    static:{directory: path.resolve(__dirname, "dist")},
+    compress: true,
+    port: 3000,
+    open: true,
+    hot: true,
+    historyApiFallback: true,
+  },
+};
+
+
+14. Webpack için daha fazla ilgi almak için tutorial takip edilebilir.(https://webpack.js.org/concepts/)
+
+15. Şimdi sırada projemizin asıl bağımlılıklarını yükleyelim.
+npm install --save react
+npm install --save react-dom
+
+16. src/index.jsx dosyamızı oluşturalım.
+import React from "react"
+import ReactDOM from "react-dom"
+const App = () => {
+    return (
+        <div>
+            Selam App.js
+        </div>
+    )
+}
+ReactDOM.render(<App/>,document.getElementById('root'))
+
+17. Son olarak package.json dosyamıza npm scriptlerimizi yazalım.
+
+"scripts": {
+    "build": "webpack",
+    "dev": "webpack serve --config webpack.config.js"
+},
+
+proje buildinin webpack tarafından ele alınacağını belirttikten sonra dev kısmında webpack dev serverin ele alacağını hangi config dosyasını kullanacağınıda belirttikten sonra artık npm run dev diyerek react projemizi başarılı bir şekilde çalıştırabiliriz
+
+18. npm run dev diyerek projeyi ayağa kaldırabilirsiniz.
+https://www.youtube.com/watch?v=yHlTIAWJ3lU&t=14 videosu ve https://yasinefemdalkilic.medium.com/webpack5-ile-react-projesi-olu%C5%9Fturmak-c89a2895f1b8 medium makalesinden kendime not oluşturmak amacıyla alınmıştır.
